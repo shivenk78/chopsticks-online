@@ -184,99 +184,138 @@ function vectorToString(vector, digits) {
              + vector[2].toFixed(digits) + ")";
 }
 
-    //////////////////////////////////////////////////DRAWING SECTION//////////////////////////////////////////////////////////////
-    var canvas = document.getElementById("myCanvas");
-    var ctx = canvas.getContext("2d")
+//////////////////////////////////////////////////DRAWING SECTION//////////////////////////////////////////////////////////////
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d")
 
-    function drawEnemyHands(){
-        //left palm
+function drawEnemyHands(){
+    //left palm
+    ctx.beginPath();
+    ctx.rect(120,40,80,80);
+    ctx.fillStyle = "red";
+    ctx.fill();
+    ctx.closePath();
+
+    //right palm
+    ctx.beginPath();
+    ctx.rect(280,40,80,80);
+    ctx.fillStyle = "red";
+    ctx.fill();
+    ctx.closePath();
+
+    //left fingers
+    var initX = 195;
+    for(var i=0; i<comp.leftHand.fingerCount; i++){
+        var initY = (i<4) ? 120 : 80;
+        initX = (i<4) ? initX : 215;
         ctx.beginPath();
-        ctx.rect(120,40,80,80);
+        ctx.rect(initX,initY,-15,50);
         ctx.fillStyle = "red";
         ctx.fill();
         ctx.closePath();
-
-        //right palm
-        ctx.beginPath();
-        ctx.rect(280,40,80,80);
-        ctx.fillStyle = "red";
-        ctx.fill();
-        ctx.closePath();
-
-        //left fingers
-        var initX = 195;
-        for(var i=0; i<comp.leftHand.fingerCount; i++){
-            var initY = (i<4) ? 120 : 80;
-            initX = (i<4) ? initX : 215;
-            ctx.beginPath();
-            ctx.rect(initX,initY,-15,50);
-            ctx.fillStyle = "red";
-            ctx.fill();
-            ctx.closePath();
-            initX-=20;
-        }
-
-        //right fingers
-        var initX = 285;
-        for(var i=0; i<comp.rightHand.fingerCount; i++){
-            var initY = (i<4) ? 120 : 80;
-            initX = (i<4) ? initX : 265;
-            ctx.beginPath();
-            ctx.rect(initX,initY,15,50);
-            ctx.fillStyle = "red";
-            ctx.fill();
-            ctx.closePath();
-            initX+=20;
-        }
+        initX-=20;
     }
 
-    function drawPlayerHands(){
-        
-
-        //left palm
+    //right fingers
+    var initX = 285;
+    for(var i=0; i<comp.rightHand.fingerCount; i++){
+        var initY = (i<4) ? 120 : 80;
+        initX = (i<4) ? initX : 265;
         ctx.beginPath();
-        ctx.rect(120,360,80,80);
+        ctx.rect(initX,initY,15,50);
+        ctx.fillStyle = "red";
+        ctx.fill();
+        ctx.closePath();
+        initX+=20;
+    }
+}
+
+function drawPlayerHands(){
+    
+
+    //left palm
+    ctx.beginPath();
+    ctx.rect(120,360,80,80);
+    ctx.fillStyle = user.leftHand.currColor;
+    ctx.fill();
+    ctx.closePath();
+
+    //right palm
+    ctx.beginPath();
+    ctx.rect(280,360,80,80);
+    ctx.fillStyle = user.rightHand.currColor;
+    ctx.fill();
+    ctx.closePath();
+
+    //left fingers
+    var initX = 195;
+    for(var i=0; i<user.leftHand.fingerTypes.length; i++){
+        var fing = user.leftHand.fingerTypes[i];
+        var initY = (fing>0) ? 360 : 400;
+        initX = (fing>0) ? 215-(20*fing) : 215;
+        ctx.beginPath();
+        ctx.rect(initX,initY,-15,-50);
         ctx.fillStyle = user.leftHand.currColor;
         ctx.fill();
         ctx.closePath();
+    }
 
-        //right palm
+    //right fingers
+    var initX = 285;
+    for(var i=0; i<user.rightHand.fingerTypes.length; i++){
+        var fing = user.rightHand.fingerTypes[i];
+        var initY = (fing>0) ? 360 : 400;
+        initX = (fing>0) ? 265+(20*fing) : 265;
         ctx.beginPath();
-        ctx.rect(280,360,80,80);
+        ctx.rect(initX,initY,15,-50);
         ctx.fillStyle = user.rightHand.currColor;
         ctx.fill();
         ctx.closePath();
-
-        //left fingers
-        var initX = 195;
-        for(var i=0; i<user.leftHand.fingerTypes.length; i++){
-            var fing = user.leftHand.fingerTypes[i];
-            var initY = (fing>0) ? 360 : 400;
-            initX = (fing>0) ? 215-(20*fing) : 215;
-            ctx.beginPath();
-            ctx.rect(initX,initY,-15,-50);
-            ctx.fillStyle = user.leftHand.currColor;
-            ctx.fill();
-            ctx.closePath();
-        }
-
-        //right fingers
-        var initX = 285;
-        for(var i=0; i<user.rightHand.fingerTypes.length; i++){
-            var fing = user.rightHand.fingerTypes[i];
-            var initY = (fing>0) ? 360 : 400;
-            initX = (fing>0) ? 265+(20*fing) : 265;
-            ctx.beginPath();
-            ctx.rect(initX,initY,15,-50);
-            ctx.fillStyle = user.rightHand.currColor;
-            ctx.fill();
-            ctx.closePath();
-        }
     }
+}
 
-    function draw(){
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-        drawEnemyHands();
-        drawPlayerHands();
-    }
-    setInterval(draw, 10);
+function draw(){
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    drawEnemyHands();
+    drawPlayerHands();
+}
+setInterval(draw, 10);
+
+// Machine Learning
+
+let brain;
+let userR, userL, cpuR, cpuL;
+
+let userSplit;
+let userRightCpuRight;
+let userRightCpuLeft;
+let userLeftCpuRight;
+let userLeftCpuLeft;
+
+var once = true;
+
+function generateScenario() {
+    userR = Math.floor(Math.random()*5);
+    userL = Math.floor(Math.random()*5);
+    cpuR = Math.floor(Math.random()*5);
+    cpuL = Math.floor(Math.random()*5);
+    console.log("userR: " + userR);
+    console.log("userL: " + userL);
+    console.log("cpuR: " + cpuR);
+    console.log("cpuL: " + cpuL);
+}
+
+function setup() {
+  createCanvas(300, 750);
+  noLoop();
+  brain = new NeuralNetwork(4, 4, 5);
+
+  generateScenario();
+
+}
+
+function predictor() {
+    let inputs = [userR, userL, cpuR, cpuL];
+    let outputs = brain.predict(inputs);
+    console.log(outputs);
+}
