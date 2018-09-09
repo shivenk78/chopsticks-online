@@ -80,7 +80,8 @@ let userRightCpuRight;
 let userRightCpuLeft;
 let userLeftCpuRight;
 let userLeftCpuLeft;
-
+let outputs;
+let inputs;
 var once = true;
 
 function generateScenario() {
@@ -94,13 +95,10 @@ function generateScenario() {
     // console.log("cpuL: " + cpuL);
 }
 
-  brain = new NeuralNetwork(4, 4, 5);
-    let outputs;
-    let inputs;
-  generateScenario();
+brain = new NeuralNetwork(4, 4, 5);
 
 function predictor() {
-    inputs = [userR, userL, cpuR, cpuL];
+    inputs = [user.rightHand.fingerCount, user.leftHand.fingerCount, comp.rightHand.fingerCount, comp.leftHand.fingerCount];
     outputs = brain.predict(inputs);
     //console.log(outputs);
 }
