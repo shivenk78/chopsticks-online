@@ -23,6 +23,8 @@ function toggleCheat(){
 var leftFingers = 0;
 var rightFingers = 0;
 
+var isTrain = false;
+
 class Hand{
 
     constructor(fingerCount, ifRight, color) {
@@ -68,7 +70,6 @@ class Player{
 
 var user = new Player("USER", "green");
 var comp = new Player("COMP", "red");
-
 // Machine Learning
 
 let brain;
@@ -93,9 +94,12 @@ function generateScenario() {
     console.log("cpuL: " + cpuL);
 }
 
+function setup() {
   brain = new NeuralNetwork(4, 4, 5);
 
   generateScenario();
+
+}
 
 function predictor() {
     let inputs = [userR, userL, cpuR, cpuL];
@@ -103,30 +107,43 @@ function predictor() {
     console.log(outputs);
 }
 
-function training()
-{
-    var x;
-    x = prompt("What's your move?", "[Your hand][Hand to attack] - LR means your left hitting their right. split to split"), 10;
-
-    let targets;
-    if (x == "RR")             
-        targets = [1,0,0,0,0];
-    if (x == "RL") 
-    targets = [0,1,0,0,0];
-    if (x == "LR") 
-       targets = [0,0,1,0,0];
-    if (x == "LL") 
-        targets = [0,0,0,1,0];
-    if (x == "split") 
-        targets = [0,0,0,0,1];
-    
-    let inputs = [userR, userL, cpuR, cpuL];
-    
-    brain.train(inputs, targets);
-
-    generateScenario();
+function toggleTrain(){
+    isTrain = !isTrain;
+    if(isTrain){
+        setup();
+        training();
+    }
 }
 
+function training()
+{
+    while(isTrain){
+        var x;
+        x = prompt("What's your move?", "[Your hand][Hand to attack] - LR means your left hitting their right. split to split"), 10;
+        generateScenario();
+        
+        if (x == "predict") {
+            predictor();
+        } else {
+        
+            let targets;
+            if (x == "RR")            
+                targets = [1,0,0,0,0];
+            if (x == "RL") 
+                targets = [0,1,0,0,0];
+            if (x == "LR") 
+                targets = [0,0,1,0,0];
+            if (x == "LL") 
+                targets = [0,0,0,1,0];
+            if (x == "split") 
+                targets = [0,0,0,0,1];
+        console.log(targets);
+        console.log(x);
+        let inputs = [userR, userL, cpuR, cpuL];
+        brain.train(inputs, targets);
+        } 
+    }
+}
 
 Leap.loop(controllerOptions, function(frame) {
   if (paused) {
@@ -413,22 +430,4 @@ function draw(){
 }
 setInterval(draw, 10);
 
-// function computerHit(outputs)
-// {
-//     max = outputs[0];
-//     max_pos = 0;
-//     for (var i = 1; i < outputs.length; i++)
-//     {
-//         if (max < outputs[i])
-//             max_pos = i;
-//     if(max_pos==0)
-//         comp.rightHand.hit(user.rightHand);
-//     if(max_pos==1)
-//         comp.rightHand.hit(user.leftHand);
-//     if(max_pos==2)
-//         comp.leftHand.hit(user.rightHand);
-//     if(max_pos==3)
-//         comp.leftHand.hit(user.leftHand);
-//     }
-    
-// }
+
