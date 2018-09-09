@@ -14,10 +14,10 @@ var rightFingers = 0;
 
 class Hand{
 
-    constructor(fingerCount, ifRight, ifActive, color) {
+    constructor(fingerCount, ifRight, color) {
         this.ifRight = ifRight;
         this.fingerCount = fingerCount;
-        //this.ifActive = ifActive;
+        this.ifActive = false;
         this.currColor = color;
         this.origColor = color;
         this.fingerTypes = [];
@@ -48,8 +48,8 @@ class Player{
     constructor(name, color){
         this.name=name;
         this.color=color;
-        this.rightHand = new Hand(1, true, false, color);
-        this.leftHand = new Hand(1, false, false, color);
+        this.rightHand = new Hand(1, true, color);
+        this.leftHand = new Hand(1, false, color);
     }
 }
 
@@ -132,8 +132,13 @@ Leap.loop(controllerOptions, function(frame) {
                 user.leftHand.isActive(true);
                 user.rightHand.isActive(false);
             }else{
-                user.rightHand.isActive(true);
-                user.leftHand.isActive(false);
+                if(circleHandType=="right"){
+                    user.rightHand.isActive(true);
+                    user.leftHand.isActive(false); 
+                }else{
+                    user.rightHand.isActive(false);
+                    user.leftHand.isActive(false); 
+                }       
             }
           break;
         case "swipe":
@@ -153,11 +158,11 @@ Leap.loop(controllerOptions, function(frame) {
                 if(targetDir=="left"){
                     console.log("TARGET LEFT");
                     (currentHandType=="left") ? user.leftHand.hit(comp.leftHand) : user.rightHand.hit(comp.leftHand) ;
-                    //(currentHandType=="left") ? user.leftHand.ifActive(false) : user.rightHand.ifActive(false);
+                    (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
                 }else{
                     console.log("TARGET RIGHT");
                     (currentHandType=="left") ? user.leftHand.hit(comp.rightHand) : user.rightHand.hit(comp.rightHand);
-                    //(currentHandType=="left") ? user.leftHand.ifActive(false) : user.rightHand.ifActive(false);
+                    (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
                 }
             }
         case "keyTap":
