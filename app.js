@@ -61,8 +61,11 @@ Leap.loop(controllerOptions, function(frame) {
     return; // Skip this update
   }
 
+
     user.rightHand.fingerTypes = [];
     user.leftHand.fingerTypes = [];
+
+    draw();
 
   // Frame motion factors
   if (previousFrame && previousFrame.valid) {
@@ -103,6 +106,15 @@ Leap.loop(controllerOptions, function(frame) {
     handString += "No hands";
   }
 
+  //detect cheating/changes
+  if(user.rightHand.fingerCount != rightFingers){
+    //PAUSE GAME
+  }else if(user.leftHand.fingerCount != leftFingers){
+    //PAUSE GAME
+  }
+
+
+
   // Display Gesture object data
   var gestureOutput = document.getElementById("gestureData");
   var gestureString = "";
@@ -135,9 +147,11 @@ Leap.loop(controllerOptions, function(frame) {
                 if(circleHandType=="right"){
                     user.rightHand.isActive(true);
                     user.leftHand.isActive(false); 
+                    draw();
                 }else{
                     user.rightHand.isActive(false);
                     user.leftHand.isActive(false); 
+                    draw();
                 }       
             }
           break;
@@ -157,9 +171,11 @@ Leap.loop(controllerOptions, function(frame) {
                 if(targetDir=="left"){
                     (currentHandType=="left") ? user.leftHand.hit(comp.leftHand) : user.rightHand.hit(comp.leftHand) ;
                     (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
+                    draw();
                 }else{
                     (currentHandType=="left") ? user.leftHand.hit(comp.rightHand) : user.rightHand.hit(comp.rightHand);
                     (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
+                    draw();
                 }
             }
         case "keyTap":
@@ -279,4 +295,4 @@ function vectorToString(vector, digits) {
         drawEnemyHands();
         drawPlayerHands();
     }
-    setInterval(draw, 10);
+    //setInterval(draw, 10);
