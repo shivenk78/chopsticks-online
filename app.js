@@ -152,15 +152,12 @@ Leap.loop(controllerOptions, function(frame) {
                             +" Position: "+vectorToString(gesture.position,3)
                             +" Duration: "+gesture.duration;
             var currentHandType = (user.leftHand.currColor=="blue") ? "left" : "right";
-            console.log(currentHandType);
             var targetDir = (gesture.direction[0]>0) ? "left" : "right";
             if( currentHandType=="right" || currentHandType=="left" ){
                 if(targetDir=="left"){
-                    console.log("TARGET LEFT");
                     (currentHandType=="left") ? user.leftHand.hit(comp.leftHand) : user.rightHand.hit(comp.leftHand) ;
                     (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
                 }else{
-                    console.log("TARGET RIGHT");
                     (currentHandType=="left") ? user.leftHand.hit(comp.rightHand) : user.rightHand.hit(comp.rightHand);
                     (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
                 }
@@ -174,7 +171,6 @@ Leap.loop(controllerOptions, function(frame) {
       //gestureString += "<br />";
     }
   }
-  console.log(gestureString);
   // Store frame for motion functions
   previousFrame = frame;
 })
