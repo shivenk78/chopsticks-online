@@ -9,6 +9,9 @@ var controllerOptions = {enableGestures: true};
 // to use HMD mode:
 // controllerOptions.optimizeHMD = true;
 
+var leftFingers = 0;
+var rightFingers = 0;
+
 class Hand{
 
     constructor(fingerCount, ifRight, ifActive, color) {
@@ -17,7 +20,6 @@ class Hand{
         //this.ifActive = ifActive;
         this.currColor = color;
         this.origColor = color;
-        this.realTimeFingerCount;
         this.fingerTypes = [];
     }
   
@@ -32,15 +34,14 @@ class Hand{
       }
     }
 
-    /*set ifActive(ifActive){
+    isActive(ifActive){
         this.ifActive=ifActive;
         (this.ifActive) ? this.currColor = 'blue': this.currColor = this.origColor;
-    }*/
-
-    set realTimeFingerCount(realTimeFingerCount){
-        this.realTimeFingerCount=realTimeFingerCount;
     }
-  
+
+    /*set realTimeFingerCount(realTimeFingerCount){
+        this.realTimeFingerCount=realTimeFingerCount;
+    }*/
 }
 
 class Player{
@@ -95,7 +96,7 @@ Leap.loop(controllerOptions, function(frame) {
             (hand.type=="left") ? user.leftHand.fingerTypes.push(finger.type) : user.rightHand.fingerTypes.push(finger.type)
         }
       }
-      (hand.type=="left") ? user.leftHand.realTimeFingerCount=extendedFingers : user.rightHand.realTimeFingerCount=extendedFingers;
+      (hand.type=="left") ? leftFingers=extendedFingers : rightFingers=extendedFingers;
     }
   }
   else {
@@ -128,11 +129,11 @@ Leap.loop(controllerOptions, function(frame) {
             var circleHand = frame.hand(gesture.handIds[0]);
             var circleHandType = circleHand.type;
             if(circleHandType=="left"){
-                //user.leftHand.ifActive(true);
-                //user.rightHand.ifActive(false);
+                user.leftHand.isActive(true);
+                user.rightHand.isActive(false);
             }else{
-                //user.rightHand.ifActive(true);
-                //user.leftHand.ifActive(false);
+                user.rightHand.isActive(true);
+                user.leftHand.isActive(false);
             }
           break;
         case "swipe":
@@ -145,7 +146,7 @@ Leap.loop(controllerOptions, function(frame) {
             gestureString+="Direction: "+vectorToString(gesture.direction,3)
                             +" Position: "+vectorToString(gesture.position,3)
                             +" Duration: "+gesture.duration;
-            var currentHandType = activeHand();
+            var currentHandType = (user.leftHand.currColor=="blue") ? "left" : "right";
             console.log(currentHandType);
             var targetDir = (gesture.direction[0]>0) ? "left" : "right";
             if( currentHandType=="right" || currentHandType=="left" ){
@@ -253,7 +254,7 @@ function vectorToString(vector, digits) {
             initX = (fing>0) ? 215-(20*fing) : 215;
             ctx.beginPath();
             ctx.rect(initX,initY,-15,-50);
-            ctx.fillStyle = playerLeftHand.currColor;
+            ctx.fillStyle = user.leftHand.currColor;
             ctx.fill();
             ctx.closePath();
         }
