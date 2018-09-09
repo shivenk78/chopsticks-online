@@ -88,29 +88,26 @@ function generateScenario() {
     userL = Math.floor(Math.random()*5);
     cpuR = Math.floor(Math.random()*5);
     cpuL = Math.floor(Math.random()*5);
-    console.log("userR: " + userR);
-    console.log("userL: " + userL);
-    console.log("cpuR: " + cpuR);
-    console.log("cpuL: " + cpuL);
+    // console.log("userR: " + userR);
+    // console.log("userL: " + userL);
+    // console.log("cpuR: " + cpuR);
+    // console.log("cpuL: " + cpuL);
 }
 
-function setup() {
   brain = new NeuralNetwork(4, 4, 5);
-
+    let outputs;
+    let inputs;
   generateScenario();
 
-}
-
 function predictor() {
-    let inputs = [userR, userL, cpuR, cpuL];
-    let outputs = brain.predict(inputs);
-    console.log(outputs);
+    inputs = [userR, userL, cpuR, cpuL];
+    outputs = brain.predict(inputs);
+    //console.log(outputs);
 }
 
 function toggleTrain(){
     isTrain = !isTrain;
     if(isTrain){
-        setup();
         training();
     }
 }
@@ -137,8 +134,8 @@ function training()
                 targets = [0,0,0,1,0];
             if (x == "split") 
                 targets = [0,0,0,0,1];
-        console.log(targets);
-        console.log(x);
+        // console.log(targets);
+        // console.log(x);
         let inputs = [userR, userL, cpuR, cpuL];
         brain.train(inputs, targets);
         } 
