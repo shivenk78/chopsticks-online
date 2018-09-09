@@ -9,6 +9,13 @@ var controllerOptions = {enableGestures: true};
 // to use HMD mode:
 // controllerOptions.optimizeHMD = true;
 
+var GameStatus = Object.freeze({"RUNNING":1, "OVER":2, "PAUSED":3});
+var gameStatus = GameStatus.RUNNING;
+var anticheat = true;
+function toggleCheat(){
+    anticheat = !anticheat;
+}
+
 var leftFingers = 0;
 var rightFingers = 0;
 
@@ -24,7 +31,9 @@ class Hand{
     }
   
     hit(hand){
-      hand.fingerCount = hand.fingerCount + this.fingerCount;
+        if(hand.fingerCount > 0){
+            hand.fingerCount = hand.fingerCount + this.fingerCount;
+        }   
     }
   
     transfer(hand, fingerCount){
@@ -93,7 +102,17 @@ Leap.loop(controllerOptions, function(frame) {
         var finger = hand.fingers[f];
         if(finger.extended){
             extendedFingers++;
-            (hand.type=="left") ? user.leftHand.fingerTypes.push(finger.type) : user.rightHand.fingerTypes.push(finger.type)
+            
+            if(anticheat){
+                if(hand.type=="left" && extendedFingers <= user.leftHand.fingerCount){
+                    user.leftHand.fingerTypes.push(finger.type)
+                }
+                if(hand.type=="right" && extendedFingers <= user.rightHand.fingerCount){
+                    user.rightHand.fingerTypes.push(finger.type)
+                }
+            }else{
+                (hand.type=="left") ? user.leftHand.fingerTypes.push(finger.type) : user.rightHand.fingerTypes.push(finger.type);
+            }      
         }
       }
       (hand.type=="left") ? leftFingers=extendedFingers : rightFingers=extendedFingers;
@@ -102,6 +121,18 @@ Leap.loop(controllerOptions, function(frame) {
   else {
     handString += "No hands";
   }
+
+  //detect cheating/changes
+    var total = user.rightHand.fingerCount + user.leftHand.fingerCount;
+    var totalNew = rightFingers+leftFingers;
+    if(total == totalNew){
+        user.rightHand.fingerCount = rightFingers;
+        user.leftHand.fingerCount = leftFingers;
+    }else if(user.rightHand.fingerCount != rightFingers){
+        gameStatus = GameStatus.PAUSED;
+    }else if(user.leftHand.fingerCount != leftFingers){
+        gameStatus = GameStatus.PAUSED;
+    }
 
   // Display Gesture object data
   var gestureOutput = document.getElementById("gestureData");
@@ -128,18 +159,21 @@ Leap.loop(controllerOptions, function(frame) {
                         // + "progress: " + gesture.progress.toFixed(2) + " rotations";
             var circleHand = frame.hand(gesture.handIds[0]);
             var circleHandType = circleHand.type;
-            if(circleHandType=="left"){
-                user.leftHand.isActive(true);
-                user.rightHand.isActive(false);
-            }else{
-                if(circleHandType=="right"){
-                    user.rightHand.isActive(true);
-                    user.leftHand.isActive(false); 
-                }else{
+            if(gameStatus = GameStatus.RUNNING){
+                if(circleHandType=="left"){
+                    user.leftHand.isActive(true);
                     user.rightHand.isActive(false);
-                    user.leftHand.isActive(false); 
-                }       
+                }else{
+                    if(circleHandType=="right"){
+                        user.rightHand.isActive(true);
+                        user.leftHand.isActive(false); 
+                    }else{
+                        user.rightHand.isActive(false);
+                        user.leftHand.isActive(false); 
+                    }       
+                }
             }
+            
           break;
         case "swipe":
         //   gestureString += "start position: " + vectorToString(gesture.startPosition) + " mm, "
@@ -153,13 +187,22 @@ Leap.loop(controllerOptions, function(frame) {
                             +" Duration: "+gesture.duration;
             var currentHandType = (user.leftHand.currColor=="blue") ? "left" : "right";
             var targetDir = (gesture.direction[0]>0) ? "left" : "right";
-            if( currentHandType=="right" || currentHandType=="left" ){
-                if(targetDir=="left"){
-                    (currentHandType=="left") ? user.leftHand.hit(comp.leftHand) : user.rightHand.hit(comp.leftHand) ;
-                    (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
-                }else{
-                    (currentHandType=="left") ? user.leftHand.hit(comp.rightHand) : user.rightHand.hit(comp.rightHand);
-                    (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
+            if(gameStatus = GameStatus.RUNNING){
+                if( currentHandType=="right" || currentHandType=="left" ){
+                    if(targetDir=="left"){
+                        (currentHandType=="left") ? user.leftHand.hit(comp.leftHand) : user.rightHand.hit(comp.leftHand) ;
+                        (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
+                        (comp.leftHand.fingerCount >= 5) ? comp.leftHand.fingerCount = 0: '';
+                        console.log("Number of fingers we are adding: "+user.rightHand.fingerCount);
+                    }else{
+                        (currentHandType=="left") ? user.leftHand.hit(comp.rightHand) : user.rightHand.hit(comp.rightHand);
+                        (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
+                        (comp.rightHand.fingerCount >= 5) ? comp.rightHand.fingerCount = 0: '';
+                    }
+
+                    if(comp.leftHand.fingerCount == 0 && comp.rightHand.fingerCount == 0){
+                        //GAME OVER
+                    }
                 }
             }
         case "keyTap":
@@ -275,8 +318,10 @@ function vectorToString(vector, digits) {
     }
 
     function draw(){
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-        drawEnemyHands();
-        drawPlayerHands();
+        if(gameStatus = GameStatus.RUNNING){
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            drawEnemyHands();
+            drawPlayerHands();
+        }
     }
     setInterval(draw, 10);
