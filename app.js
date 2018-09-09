@@ -12,6 +12,8 @@ var controllerOptions = {enableGestures: true};
 var leftFingers = 0;
 var rightFingers = 0;
 
+var isTrain = false;
+
 class Hand{
 
     constructor(fingerCount, ifRight, color) {
@@ -316,8 +318,6 @@ function generateScenario() {
 }
 
 function setup() {
-  createCanvas(300, 750);
-  noLoop();
   brain = new NeuralNetwork(4, 4, 5);
 
   generateScenario();
@@ -330,26 +330,40 @@ function predictor() {
     console.log(outputs);
 }
 
+function toggleTrain(){
+    isTrain = !isTrain;
+    if(isTrain){
+        setup();
+        training();
+    }
+}
+
 function training()
 {
-    var x;
-    x = prompt("What's your move?", "[Your hand][Hand to attack] - LR means your left hitting their right. split to split"), 10;
-
-    let targets;
-    if (x == "RR")             
-        targets = [1,0,0,0,0];
-    if (x == "RL") 
-    targets = [0,1,0,0,0];
-    if (x == "LR") 
-       targets = [0,0,1,0,0];
-    if (x == "LL") 
-        targets = [0,0,0,1,0];
-    if (x == "split") 
-        targets = [0,0,0,0,1];
-    
-    let inputs = [userR, userL, cpuR, cpuL];
-    
-    brain.train(inputs, targets);
-
-    generateScenario();
+    while(isTrain){
+        var x;
+        x = prompt("What's your move?", "[Your hand][Hand to attack] - LR means your left hitting their right. split to split"), 10;
+        generateScenario();
+        
+        if (x == "predict") {
+            predictor();
+        } else {
+        
+            let targets;
+            if (x == "RR")            
+                targets = [1,0,0,0,0];
+            if (x == "RL") 
+                targets = [0,1,0,0,0];
+            if (x == "LR") 
+                targets = [0,0,1,0,0];
+            if (x == "LL") 
+                targets = [0,0,0,1,0];
+            if (x == "split") 
+                targets = [0,0,0,0,1];
+        console.log(targets);
+        console.log(x);
+        let inputs = [userR, userL, cpuR, cpuL];
+        brain.train(inputs, targets);
+        } 
+    }
 }
