@@ -239,7 +239,8 @@ Leap.loop(controllerOptions, function(frame) {
                         // + "progress: " + gesture.progress.toFixed(2) + " rotations";
             var circleHand = frame.hand(gesture.handIds[0]);
             var circleHandType = circleHand.type;
-            if(gameStatus == GameStatus.RUNNING && turn == Turn.USER){
+            console.log(turn+"fuck u");
+            if(turn == Turn.USER){
                 if(circleHandType=="left"){
                     user.leftHand.isActive(true);
                     user.rightHand.isActive(false);
@@ -267,7 +268,7 @@ Leap.loop(controllerOptions, function(frame) {
                             +" Duration: "+gesture.duration;
             var currentHandType = (user.leftHand.currColor=="blue") ? "left" : "right";
             var targetDir = (gesture.direction[0]>0) ? "left" : "right";
-            if(gameStatus == GameStatus.RUNNING && turn == Turn.USER){
+            if(turn == Turn.USER){
                 if( currentHandType=="right" || currentHandType=="left" ){
                     if(targetDir=="left"){
                         (currentHandType=="left") ? user.leftHand.hit(comp.leftHand) : user.rightHand.hit(comp.leftHand) ;
