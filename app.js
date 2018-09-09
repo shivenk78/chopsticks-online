@@ -11,6 +11,10 @@ var controllerOptions = {enableGestures: true};
 
 var GameStatus = Object.freeze({"RUNNING":1, "OVER":2, "PAUSED":3});
 var gameStatus = GameStatus.RUNNING;
+var anticheat = true;
+function toggleCheat(){
+    anticheat = !anticheat;
+}
 
 var leftFingers = 0;
 var rightFingers = 0;
@@ -98,7 +102,17 @@ Leap.loop(controllerOptions, function(frame) {
         var finger = hand.fingers[f];
         if(finger.extended){
             extendedFingers++;
-            (hand.type=="left") ? user.leftHand.fingerTypes.push(finger.type) : user.rightHand.fingerTypes.push(finger.type)
+            
+            if(anticheat){
+                if(hand.type=="left" && extendedFingers <= user.leftHand.fingerCount){
+                    user.leftHand.fingerTypes.push(finger.type)
+                }
+                if(hand.type=="right" && extendedFingers <= user.rightHand.fingerCount){
+                    user.rightHand.fingerTypes.push(finger.type)
+                }
+            }else{
+                (hand.type=="left") ? user.leftHand.fingerTypes.push(finger.type) : user.rightHand.fingerTypes.push(finger.type);
+            }      
         }
       }
       (hand.type=="left") ? leftFingers=extendedFingers : rightFingers=extendedFingers;
@@ -108,15 +122,13 @@ Leap.loop(controllerOptions, function(frame) {
     handString += "No hands";
   }
 
+  //detect cheating/changes
     var total = user.rightHand.fingerCount + user.leftHand.fingerCount;
     var totalNew = rightFingers+leftFingers;
     if(total == totalNew){
         user.rightHand.fingerCount = rightFingers;
         user.leftHand.fingerCount = leftFingers;
-    }
-
-    //detect cheating/changes
-    if(user.rightHand.fingerCount != rightFingers){
+    }else if(user.rightHand.fingerCount != rightFingers){
         gameStatus = GameStatus.PAUSED;
     }else if(user.leftHand.fingerCount != leftFingers){
         gameStatus = GameStatus.PAUSED;
@@ -181,6 +193,7 @@ Leap.loop(controllerOptions, function(frame) {
                         (currentHandType=="left") ? user.leftHand.hit(comp.leftHand) : user.rightHand.hit(comp.leftHand) ;
                         (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
                         (comp.leftHand.fingerCount >= 5) ? comp.leftHand.fingerCount = 0: '';
+                        console.log("Number of fingers we are adding: "+user.rightHand.fingerCount);
                     }else{
                         (currentHandType=="left") ? user.leftHand.hit(comp.rightHand) : user.rightHand.hit(comp.rightHand);
                         (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
