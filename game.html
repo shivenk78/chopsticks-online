@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Gamedev Canvas Workshop</title>
+    <title>Chopstix Online</title>
     <style>
     	* { padding: 0; margin: 0; }
     	canvas { background: #eee; display: block; margin: 0 auto; }
@@ -10,11 +10,14 @@
 </head>
 <body>
     <div></div>
-<h1>CHOPSTICKS ONLINE</h1>
-<canvas id="myCanvas" width="480" height="320"></canvas>
+<h1 font-family:"Trebuchet MS">CHOPSTIX ONLINE</h1>
+<canvas id="myCanvas" width="480" height="480"></canvas>
 
 <script>
-    function Hand(user, side, fingerCount){
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+
+    function ChopstickHand(user, side, fingerCount){
         this.user = user;
         this.side = side;
         this.fingerCount = fingerCount;
@@ -23,19 +26,99 @@
         hand.fingerCount = newFingerCount;
     }
 
-    var canvas = document.getElementById("myCanvas");
-    var ctx = canvas.getContext("2d");
-    
-    function drawEnemyHand(){
+    var enemyLeftHand = new ChopstickHand("enemy", "left", 5);
+    var enemyRightHand = new ChopstickHand("enemy", "right", 5);
+    var playerLeftHand = new ChopstickHand("player", "left", 5);
+    var playerRightHand = new ChopstickHand("player", "right", 5);
 
-    }
-    function draw(){
-        ctx.clearRect(0,0,canvas.width, canvas.height);
+    function drawEnemyHands(){
+        //left palm
         ctx.beginPath();
-        ctx.rect(20,40,50,50);
+        ctx.rect(120,40,80,80);
         ctx.fillStyle = "red";
         ctx.fill();
         ctx.closePath();
+
+        //right palm
+        ctx.beginPath();
+        ctx.rect(280,40,80,80);
+        ctx.fillStyle = "red";
+        ctx.fill();
+        ctx.closePath();
+
+        //left fingers
+        var initX = 195;
+        for(var i=0; i<enemyLeftHand.fingerCount; i++){
+            var initY = (i<4) ? 120 : 80;
+            initX = (i<4) ? initX : 215;
+            ctx.beginPath();
+            ctx.rect(initX,initY,-15,50);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.closePath();
+            initX-=20;
+        }
+
+        //right fingers
+        var initX = 285;
+        for(var i=0; i<enemyRightHand.fingerCount; i++){
+            var initY = (i<4) ? 120 : 80;
+            initX = (i<4) ? initX : 265;
+            ctx.beginPath();
+            ctx.rect(initX,initY,15,50);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.closePath();
+            initX+=20;
+        }
+    }
+
+    function drawPlayerHands(){
+        //left palm
+        ctx.beginPath();
+        ctx.rect(120,360,80,80);
+        ctx.fillStyle = "green";
+        ctx.fill();
+        ctx.closePath();
+
+        //right palm
+        ctx.beginPath();
+        ctx.rect(280,360,80,80);
+        ctx.fillStyle = "green";
+        ctx.fill();
+        ctx.closePath();
+
+        //left fingers
+        var initX = 195;
+        for(var i=0; i<playerLeftHand.fingerCount; i++){
+            var initY = (i<4) ? 360 : 400;
+            initX = (i<4) ? initX : 215;
+            ctx.beginPath();
+            ctx.rect(initX,initY,-15,-50);
+            ctx.fillStyle = "green";
+            ctx.fill();
+            ctx.closePath();
+            initX-=20;
+        }
+
+        //right fingers
+        var initX = 285;
+        for(var i=0; i<playerRightHand.fingerCount; i++){
+            var initY = (i<4) ? 360 : 400;
+            initX = (i<4) ? initX : 265;
+            ctx.beginPath();
+            ctx.rect(initX,initY,15,-50);
+            ctx.fillStyle = "green";
+            ctx.fill();
+            ctx.closePath();
+            initX+=20;
+        }
+    }
+
+    function draw(){
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        drawEnemyHands();
+        drawPlayerHands();
     }
     setInterval(draw, 10);
 </script>
