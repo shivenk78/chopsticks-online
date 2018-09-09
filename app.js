@@ -53,16 +53,6 @@ class Player{
         this.rightHand = new Hand(1, true, color);
         this.leftHand = new Hand(1, false, color);
     }
-    computerHit(outputs)
-    {
-        max = outputs[0];
-        max_pos = 0;
-        for (var i = 1; i < outputs.length; i++)
-        {
-            if (max < outputs[i])
-                max_pos = i;
-        }
-    }
 }
 
 var user = new Player("USER", "green");
@@ -366,4 +356,25 @@ function training()
         brain.train(inputs, targets);
         } 
     }
+}
+
+
+function computerHit(outputs)
+{
+    max = outputs[0];
+    max_pos = 0;
+    for (var i = 1; i < outputs.length; i++)
+    {
+        if (max < outputs[i])
+            max_pos = i;
+    }
+    if(max_pos==0)
+        comp.rightHand.hit(user.rightHand);
+    if(max_pos==1)
+        comp.rightHand.hit(user.leftHand);
+    if(max_pos==2)
+        comp.leftHand.hit(user.rightHand);
+    if(max_pos==3)
+        comp.leftHand.hit(user.leftHand);
+    
 }
