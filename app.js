@@ -9,50 +9,62 @@ var controllerOptions = {enableGestures: true};
 // to use HMD mode:
 // controllerOptions.optimizeHMD = true;
 
-var leftFingers = 0;
-var rightFingers = 0;
-var leftFingerNums = [];
-var rightFingerNums = [];
+class Hand{
 
-function ChopstickHand(user, side, fingerCount, color){
-    this.user = user;
-    this.side = side;
-    this.fingerCount = fingerCount;
-    this.color = color;
-} 
-function updateHand(hand, newFingerCount){
-    hand.fingerCount = newFingerCount;
-}
-function addToHand(hand, fingerToAdd){
-    hand.fingerCount+=fingerToAdd;
-}
-function changeHandColor(hand, newColor){
-    hand.color = newColor;
-}
-function activeHand(){
-    if(playerLeftHand.color=="blue")
-        return "left";
-    if(playerRightHand.color=="blue")
-        return "right";
-    return null;
+    constructor(fingerCount, ifRight, ifActive, color) {
+        this.ifRight = ifRight;
+        this.fingerCount = fingerCount;
+        //this.ifActive = ifActive;
+        this.currColor = color;
+        this.origColor = color;
+        this.realTimeFingerCount;
+        this.fingerTypes = [];
+    }
+  
+    hit(hand){
+      hand.fingerCount = hand.fingerCount + this.fingerCount;
+    }
+  
+    transfer(hand, fingerCount){
+      if((this.fingerCount-fingerCount) > 0){
+        hand.fingerCount = hand.fingerCount + fingerCount;
+        this.fingerCount = this.fingerCount - fingerCount;
+      }
+    }
+
+    /*set ifActive(ifActive){
+        this.ifActive=ifActive;
+        (this.ifActive) ? this.currColor = 'blue': this.currColor = this.origColor;
+    }*/
+
+    set realTimeFingerCount(realTimeFingerCount){
+        this.realTimeFingerCount=realTimeFingerCount;
+    }
+  
 }
 
-var enemyLeftHand = new ChopstickHand("enemy", "left", 1, "red");
-var enemyRightHand = new ChopstickHand("enemy", "right", 1, "red");
-var playerLeftHand = new ChopstickHand("player", "left", leftFingers, "green");
-var playerRightHand = new ChopstickHand("player", "right", rightFingers, "green");
+class Player{
+    constructor(name, color){
+        this.name=name;
+        this.color=color;
+        this.rightHand = new Hand(1, true, false, color);
+        this.leftHand = new Hand(1, false, false, color);
+    }
+}
+
+var user = new Player("USER", "green");
+var comp = new Player("COMP", "red");
 
 Leap.loop(controllerOptions, function(frame) {
   if (paused) {
     return; // Skip this update
   }
 
-    leftFingerNums = [];
-    rightFingerNums = [];
+    user.rightHand.fingerTypes = [];
+    user.leftHand.fingerTypes = [];
 
   // Frame motion factors
   if (previousFrame && previousFrame.valid) {
-
     var rotationAxis = frame.rotationAxis(previousFrame);
     var rotationAngle = frame.rotationAngle(previousFrame);
     var scaleFactor = frame.scaleFactor(previousFrame);
@@ -80,10 +92,10 @@ Leap.loop(controllerOptions, function(frame) {
         var finger = hand.fingers[f];
         if(finger.extended){
             extendedFingers++;
-            (hand.type=="left") ? leftFingerNums.push(finger.type) : rightFingerNums.push(finger.type)
+            (hand.type=="left") ? user.leftHand.fingerTypes.push(finger.type) : user.rightHand.fingerTypes.push(finger.type)
         }
       }
-      (hand.type=="left") ? leftFingers=extendedFingers : rightFingers=extendedFingers;
+      (hand.type=="left") ? user.leftHand.realTimeFingerCount=extendedFingers : user.rightHand.realTimeFingerCount=extendedFingers;
     }
   }
   else {
@@ -116,11 +128,11 @@ Leap.loop(controllerOptions, function(frame) {
             var circleHand = frame.hand(gesture.handIds[0]);
             var circleHandType = circleHand.type;
             if(circleHandType=="left"){
-                changeHandColor(playerLeftHand, "blue");
-                changeHandColor(playerRightHand, "green");
+                //user.leftHand.ifActive(true);
+                //user.rightHand.ifActive(false);
             }else{
-                changeHandColor(playerRightHand, "blue");
-                changeHandColor(playerLeftHand, "green");
+                //user.rightHand.ifActive(true);
+                //user.leftHand.ifActive(false);
             }
           break;
         case "swipe":
@@ -139,12 +151,12 @@ Leap.loop(controllerOptions, function(frame) {
             if( currentHandType=="right" || currentHandType=="left" ){
                 if(targetDir=="left"){
                     console.log("TARGET LEFT");
-                    (currentHandType=="left") ? addToHand(enemyLeftHand, playerLeftHand.fingerCount) : addToHand(enemyLeftHand, playerRightHand.fingerCount);
-                    (currentHandType=="left") ? changeHandColor(playerLeftHand, "green") : changeHandColor(playerRightHand, "green");
+                    (currentHandType=="left") ? user.leftHand.hit(comp.leftHand) : user.rightHand.hit(comp.leftHand) ;
+                    //(currentHandType=="left") ? user.leftHand.ifActive(false) : user.rightHand.ifActive(false);
                 }else{
                     console.log("TARGET RIGHT");
-                    (currentHandType=="left") ? addToHand(enemyRightHand, playerLeftHand.fingerCount) : addToHand(enemyRightHand, playerRightHand.fingerCount);
-                    (currentHandType=="left") ? changeHandColor(playerLeftHand, "green") : changeHandColor(playerRightHand, "green");
+                    (currentHandType=="left") ? user.leftHand.hit(comp.rightHand) : user.rightHand.hit(comp.rightHand);
+                    //(currentHandType=="left") ? user.leftHand.ifActive(false) : user.rightHand.ifActive(false);
                 }
             }
         case "keyTap":
@@ -191,7 +203,7 @@ function vectorToString(vector, digits) {
 
         //left fingers
         var initX = 195;
-        for(var i=0; i<enemyLeftHand.fingerCount; i++){
+        for(var i=0; i<comp.leftHand.fingerCount; i++){
             var initY = (i<4) ? 120 : 80;
             initX = (i<4) ? initX : 215;
             ctx.beginPath();
@@ -204,7 +216,7 @@ function vectorToString(vector, digits) {
 
         //right fingers
         var initX = 285;
-        for(var i=0; i<enemyRightHand.fingerCount; i++){
+        for(var i=0; i<comp.rightHand.fingerCount; i++){
             var initY = (i<4) ? 120 : 80;
             initX = (i<4) ? initX : 265;
             ctx.beginPath();
@@ -222,47 +234,45 @@ function vectorToString(vector, digits) {
         //left palm
         ctx.beginPath();
         ctx.rect(120,360,80,80);
-        ctx.fillStyle = playerLeftHand.color;
+        ctx.fillStyle = user.leftHand.currColor;
         ctx.fill();
         ctx.closePath();
 
         //right palm
         ctx.beginPath();
         ctx.rect(280,360,80,80);
-        ctx.fillStyle = playerRightHand.color;
+        ctx.fillStyle = user.rightHand.currColor;
         ctx.fill();
         ctx.closePath();
 
         //left fingers
         var initX = 195;
-        for(var i=0; i<leftFingerNums.length; i++){
-            var fing = leftFingerNums[i];
+        for(var i=0; i<user.leftHand.fingerTypes.length; i++){
+            var fing = user.leftHand.fingerTypes[i];
             var initY = (fing>0) ? 360 : 400;
             initX = (fing>0) ? 215-(20*fing) : 215;
             ctx.beginPath();
             ctx.rect(initX,initY,-15,-50);
-            ctx.fillStyle = playerLeftHand.color;
+            ctx.fillStyle = playerLeftHand.currColor;
             ctx.fill();
             ctx.closePath();
         }
 
         //right fingers
         var initX = 285;
-        for(var i=0; i<rightFingerNums.length; i++){
-            var fing = rightFingerNums[i];
+        for(var i=0; i<user.rightHand.fingerTypes.length; i++){
+            var fing = user.rightHand.fingerTypes[i];
             var initY = (fing>0) ? 360 : 400;
             initX = (fing>0) ? 265+(20*fing) : 265;
             ctx.beginPath();
             ctx.rect(initX,initY,15,-50);
-            ctx.fillStyle = playerRightHand.color;
+            ctx.fillStyle = user.rightHand.currColor;
             ctx.fill();
             ctx.closePath();
         }
     }
 
     function draw(){
-        updateHand(playerLeftHand, leftFingers);
-        updateHand(playerRightHand, rightFingers);
         ctx.clearRect(0,0,canvas.width, canvas.height);
         drawEnemyHands();
         drawPlayerHands();
