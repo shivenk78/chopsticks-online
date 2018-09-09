@@ -11,6 +11,10 @@ var controllerOptions = {enableGestures: true};
 
 var GameStatus = Object.freeze({"RUNNING":1, "OVER":2, "PAUSED":3});
 var gameStatus = GameStatus.RUNNING;
+
+var Turn = Object.freeze({"USER":1, "COMP":2});
+var turn = Turn.USER;
+
 var anticheat = true;
 function toggleCheat(){
     anticheat = !anticheat;
@@ -82,47 +86,48 @@ Leap.loop(controllerOptions, function(frame) {
 
   // Display Hand object data
   var handString = "";
-  if (frame.hands.length > 0) {
-    for (var i = 0; i < frame.hands.length; i++) {
-      var hand = frame.hands[i];
+    if (frame.hands.length > 0) {
+        for (var i = 0; i < frame.hands.length; i++) {
+        var hand = frame.hands[i];
 
-      // Hand motion factors
-      if (previousFrame && previousFrame.valid) {
-        var translation = hand.translation(previousFrame);
-        handString += "Translation: " + vectorToString(translation) + " mm<br />";
+        // Hand motion factors
+        if (previousFrame && previousFrame.valid) {
+            var translation = hand.translation(previousFrame);
+            handString += "Translation: " + vectorToString(translation) + " mm<br />";
 
-        var rotationAxis = hand.rotationAxis(previousFrame, 2);
-        var rotationAngle = hand.rotationAngle(previousFrame);
-        handString += "Rotation axis: " + vectorToString(rotationAxis) + "<br />";
-        handString += "Rotation angle: " + rotationAngle.toFixed(2) + " radians<br />";
-      }
-
-      var extendedFingers = 0;
-      for(var f = 0; f < hand.fingers.length; f++){
-        var finger = hand.fingers[f];
-        if(finger.extended){
-            extendedFingers++;
-            
-            if(anticheat){
-                if(hand.type=="left" && extendedFingers <= user.leftHand.fingerCount){
-                    user.leftHand.fingerTypes.push(finger.type)
-                }
-                if(hand.type=="right" && extendedFingers <= user.rightHand.fingerCount){
-                    user.rightHand.fingerTypes.push(finger.type)
-                }
-            }else{
-                (hand.type=="left") ? user.leftHand.fingerTypes.push(finger.type) : user.rightHand.fingerTypes.push(finger.type);
-            }      
+            var rotationAxis = hand.rotationAxis(previousFrame, 2);
+            var rotationAngle = hand.rotationAngle(previousFrame);
+            handString += "Rotation axis: " + vectorToString(rotationAxis) + "<br />";
+            handString += "Rotation angle: " + rotationAngle.toFixed(2) + " radians<br />";
         }
-      }
-      (hand.type=="left") ? leftFingers=extendedFingers : rightFingers=extendedFingers;
+
+        var extendedFingers = 0;
+        for(var f = 0; f < hand.fingers.length; f++){
+            var finger = hand.fingers[f];
+            if(finger.extended){
+                extendedFingers++;
+                
+                if(anticheat){
+                    if(hand.type=="left" && extendedFingers <= user.leftHand.fingerCount){
+                        user.leftHand.fingerTypes.push(finger.type)
+                    }
+                    if(hand.type=="right" && extendedFingers <= user.rightHand.fingerCount){
+                        user.rightHand.fingerTypes.push(finger.type)
+                    }
+                }else{
+                    (hand.type=="left") ? user.leftHand.fingerTypes.push(finger.type) : user.rightHand.fingerTypes.push(finger.type);
+                }      
+            }
+        }
+        (hand.type=="left") ? leftFingers=extendedFingers : rightFingers=extendedFingers;
+        }
     }
-  }
-  else {
-    handString += "No hands";
-  }
+    else {
+        handString += "No hands";
+    }
 
   //detect cheating/changes
+  if(turn = Turn.USER){
     var total = user.rightHand.fingerCount + user.leftHand.fingerCount;
     var totalNew = rightFingers+leftFingers;
     if(total == totalNew){
@@ -133,6 +138,8 @@ Leap.loop(controllerOptions, function(frame) {
     }else if(user.leftHand.fingerCount != leftFingers){
         gameStatus = GameStatus.PAUSED;
     }
+  }
+    
 
   // Display Gesture object data
   var gestureOutput = document.getElementById("gestureData");
@@ -159,7 +166,7 @@ Leap.loop(controllerOptions, function(frame) {
                         // + "progress: " + gesture.progress.toFixed(2) + " rotations";
             var circleHand = frame.hand(gesture.handIds[0]);
             var circleHandType = circleHand.type;
-            if(gameStatus = GameStatus.RUNNING){
+            if(gameStatus == GameStatus.RUNNING && turn == Turn.USER){
                 if(circleHandType=="left"){
                     user.leftHand.isActive(true);
                     user.rightHand.isActive(false);
@@ -187,13 +194,12 @@ Leap.loop(controllerOptions, function(frame) {
                             +" Duration: "+gesture.duration;
             var currentHandType = (user.leftHand.currColor=="blue") ? "left" : "right";
             var targetDir = (gesture.direction[0]>0) ? "left" : "right";
-            if(gameStatus = GameStatus.RUNNING){
+            if(gameStatus == GameStatus.RUNNING && turn == Turn.USER){
                 if( currentHandType=="right" || currentHandType=="left" ){
                     if(targetDir=="left"){
                         (currentHandType=="left") ? user.leftHand.hit(comp.leftHand) : user.rightHand.hit(comp.leftHand) ;
                         (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
                         (comp.leftHand.fingerCount >= 5) ? comp.leftHand.fingerCount = 0: '';
-                        console.log("Number of fingers we are adding: "+user.rightHand.fingerCount);
                     }else{
                         (currentHandType=="left") ? user.leftHand.hit(comp.rightHand) : user.rightHand.hit(comp.rightHand);
                         (currentHandType=="left") ? user.leftHand.isActive(false) : user.rightHand.isActive(false);
@@ -201,8 +207,9 @@ Leap.loop(controllerOptions, function(frame) {
                     }
 
                     if(comp.leftHand.fingerCount == 0 && comp.rightHand.fingerCount == 0){
-                        //GAME OVER
+                        gameStatus = GameStatus.OVER;
                     }
+                    turn = Turn.COMP;
                 }
             }
         case "keyTap":
@@ -213,7 +220,18 @@ Leap.loop(controllerOptions, function(frame) {
       }
       //gestureString += "<br />";
     }
-  }
+}
+
+    if(turn = Turn.COMP){
+
+
+        //COMPUTER MOVES HERE!
+
+
+
+        turn=Turn.USER;
+    }
+  
   // Store frame for motion functions
   previousFrame = frame;
 })
