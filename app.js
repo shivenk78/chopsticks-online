@@ -51,6 +51,16 @@ class Player{
         this.rightHand = new Hand(1, true, color);
         this.leftHand = new Hand(1, false, color);
     }
+    computerHit(outputs)
+    {
+        max = outputs[0];
+        max_pos = 0;
+        for (var i = 1; i < outputs.length; i++)
+        {
+            if (max < outputs[i])
+                max_pos = i;
+        }
+    }
 }
 
 var user = new Player("USER", "green");
@@ -318,4 +328,28 @@ function predictor() {
     let inputs = [userR, userL, cpuR, cpuL];
     let outputs = brain.predict(inputs);
     console.log(outputs);
+}
+
+function training()
+{
+    var x;
+    x = prompt("What's your move?", "[Your hand][Hand to attack] - LR means your left hitting their right. split to split"), 10;
+
+    let targets;
+    if (x == "RR")             
+        targets = [1,0,0,0,0];
+    if (x == "RL") 
+    targets = [0,1,0,0,0];
+    if (x == "LR") 
+       targets = [0,0,1,0,0];
+    if (x == "LL") 
+        targets = [0,0,0,1,0];
+    if (x == "split") 
+        targets = [0,0,0,0,1];
+    
+    let inputs = [userR, userL, cpuR, cpuL];
+    
+    brain.train(inputs, targets);
+
+    generateScenario();
 }
