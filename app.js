@@ -15,7 +15,7 @@ var gameStatus = GameStatus.RUNNING;
 var Turn = Object.freeze({"USER":1, "COMP":2});
 var turn = Turn.USER;
 
-var anticheat = true;
+var anticheat = false;
 function toggleCheat(){
     anticheat = !anticheat;
 }
