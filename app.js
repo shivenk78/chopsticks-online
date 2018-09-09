@@ -150,6 +150,8 @@ Leap.loop(controllerOptions, function(frame) {
     user.rightHand.fingerTypes = [];
     user.leftHand.fingerTypes = [];
 
+    console.log(turn);
+
   // Frame motion factors
   if (previousFrame && previousFrame.valid) {
     var rotationAxis = frame.rotationAxis(previousFrame);
@@ -283,6 +285,7 @@ Leap.loop(controllerOptions, function(frame) {
                         gameStatus = GameStatus.OVER;
                     }
                     turn = Turn.COMP;
+                    console.log("Comp Turn");
                 }
             }
         case "keyTap":
