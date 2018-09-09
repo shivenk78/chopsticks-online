@@ -25,6 +25,12 @@ var rightFingers = 0;
 
 var isTrain = false;
 
+function delay(){
+    for(var i=0; i<2000000000; i++){
+    }
+    console.log("Delay Done");
+}
+
 class Hand{
 
     constructor(fingerCount, ifRight, color) {
@@ -39,7 +45,8 @@ class Hand{
     hit(hand){
         if(hand.fingerCount > 0){
             hand.fingerCount = hand.fingerCount + this.fingerCount;
-        }   
+        }
+        delay();   
     }
   
     transfer(hand, fingerCount){
@@ -298,7 +305,7 @@ Leap.loop(controllerOptions, function(frame) {
 }
 
     // if(turn = Turn.COMP){
-        if(false){
+    if(turn == Turn.COMP){
         predictor();
         max = outputs[0];
         max_pos = 0;
