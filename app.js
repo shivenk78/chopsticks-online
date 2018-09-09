@@ -89,10 +89,10 @@ function generateScenario() {
     userL = Math.floor(Math.random()*5);
     cpuR = Math.floor(Math.random()*5);
     cpuL = Math.floor(Math.random()*5);
-    // console.log("userR: " + userR);
-    // console.log("userL: " + userL);
-    // console.log("cpuR: " + cpuR);
-    // console.log("cpuL: " + cpuL);
+    console.log("userR: " + userR);
+    console.log("userL: " + userL);
+    console.log("cpuR: " + cpuR);
+    console.log("cpuL: " + cpuL);
 }
 
 brain = new NeuralNetwork(4, 4, 5);
@@ -100,7 +100,7 @@ brain = new NeuralNetwork(4, 4, 5);
 function predictor() {
     inputs = [user.rightHand.fingerCount, user.leftHand.fingerCount, comp.rightHand.fingerCount, comp.leftHand.fingerCount];
     outputs = brain.predict(inputs);
-    //console.log(outputs);
+    console.log(outputs);
 }
 
 function toggleTrain(){
@@ -297,8 +297,8 @@ Leap.loop(controllerOptions, function(frame) {
     }
 }
 
-    if(turn = Turn.COMP){
-
+    // if(turn = Turn.COMP){
+        if(false){
         predictor();
         max = outputs[0];
         max_pos = 0;
