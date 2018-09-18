@@ -23,6 +23,14 @@ function toggleCheat(){
 var leftFingers = 0;
 var rightFingers = 0;
 
+var isTrain = false;
+
+function delay(){
+    for(var i=0; i<2000000000; i++){
+    }
+    console.log("Delay Done");
+}
+
 class Hand{
 
     constructor(fingerCount, ifRight, color) {
@@ -37,7 +45,8 @@ class Hand{
     hit(hand){
         if(hand.fingerCount > 0){
             hand.fingerCount = hand.fingerCount + this.fingerCount;
-        }   
+        }
+        delay();   
     }
   
     transfer(hand, fingerCount){
@@ -68,6 +77,75 @@ class Player{
 
 var user = new Player("USER", "green");
 var comp = new Player("COMP", "red");
+// Machine Learning
+
+let brain;
+let userR, userL, cpuR, cpuL;
+
+let userSplit;
+let userRightCpuRight;
+let userRightCpuLeft;
+let userLeftCpuRight;
+let userLeftCpuLeft;
+let outputs;
+let inputs;
+var once = true;
+
+function generateScenario() {
+    userR = Math.floor(Math.random()*5);
+    userL = Math.floor(Math.random()*5);
+    cpuR = Math.floor(Math.random()*5);
+    cpuL = Math.floor(Math.random()*5);
+    console.log("userR: " + userR);
+    console.log("userL: " + userL);
+    console.log("cpuR: " + cpuR);
+    console.log("cpuL: " + cpuL);
+}
+
+brain = new NeuralNetwork(4, 4, 5);
+
+function predictor() {
+    inputs = [user.rightHand.fingerCount, user.leftHand.fingerCount, comp.rightHand.fingerCount, comp.leftHand.fingerCount];
+    outputs = brain.predict(inputs);
+    console.log(outputs);
+}
+
+function toggleTrain(){
+    isTrain = !isTrain;
+    if(isTrain){
+        training();
+    }
+}
+
+function training()
+{
+    while(isTrain){
+        var x;
+        x = prompt("What's your move?", "[Your hand][Hand to attack] - LR means your left hitting their right. split to split"), 10;
+        generateScenario();
+        
+        if (x == "predict") {
+            predictor();
+        } else {
+        
+            let targets;
+            if (x == "RR")            
+                targets = [1,0,0,0,0];
+            if (x == "RL") 
+                targets = [0,1,0,0,0];
+            if (x == "LR") 
+                targets = [0,0,1,0,0];
+            if (x == "LL") 
+                targets = [0,0,0,1,0];
+            if (x == "split") 
+                targets = [0,0,0,0,1];
+        // console.log(targets);
+        // console.log(x);
+        let inputs = [userR, userL, cpuR, cpuL];
+        brain.train(inputs, targets);
+        } 
+    }
+}
 
 Leap.loop(controllerOptions, function(frame) {
   if (paused) {
@@ -76,6 +154,8 @@ Leap.loop(controllerOptions, function(frame) {
 
     user.rightHand.fingerTypes = [];
     user.leftHand.fingerTypes = [];
+
+    console.log(turn);
 
   // Frame motion factors
   if (previousFrame && previousFrame.valid) {
@@ -166,7 +246,8 @@ Leap.loop(controllerOptions, function(frame) {
                         // + "progress: " + gesture.progress.toFixed(2) + " rotations";
             var circleHand = frame.hand(gesture.handIds[0]);
             var circleHandType = circleHand.type;
-            if(gameStatus == GameStatus.RUNNING && turn == Turn.USER){
+            console.log(turn+"fuck u");
+            if(turn == Turn.USER){
                 if(circleHandType=="left"){
                     user.leftHand.isActive(true);
                     user.rightHand.isActive(false);
@@ -194,7 +275,7 @@ Leap.loop(controllerOptions, function(frame) {
                             +" Duration: "+gesture.duration;
             var currentHandType = (user.leftHand.currColor=="blue") ? "left" : "right";
             var targetDir = (gesture.direction[0]>0) ? "left" : "right";
-            if(gameStatus == GameStatus.RUNNING && turn == Turn.USER){
+            if(turn == Turn.USER){
                 if( currentHandType=="right" || currentHandType=="left" ){
                     if(targetDir=="left"){
                         (currentHandType=="left") ? user.leftHand.hit(comp.leftHand) : user.rightHand.hit(comp.leftHand) ;
@@ -210,6 +291,7 @@ Leap.loop(controllerOptions, function(frame) {
                         gameStatus = GameStatus.OVER;
                     }
                     turn = Turn.COMP;
+                    console.log("Comp Turn");
                 }
             }
         case "keyTap":
@@ -222,12 +304,24 @@ Leap.loop(controllerOptions, function(frame) {
     }
 }
 
-    if(turn = Turn.COMP){
-
-
-        //COMPUTER MOVES HERE!
-
-
+    // if(turn = Turn.COMP){
+    if(turn == Turn.COMP){
+        predictor();
+        max = outputs[0];
+        max_pos = 0;
+        for (var i = 1; i < outputs.length; i++)
+        {
+            if (max < outputs[i])
+                max_pos = i;
+        if(max_pos==0)
+            comp.rightHand.hit(user.rightHand);
+        if(max_pos==1)
+            comp.rightHand.hit(user.leftHand);
+        if(max_pos==2)
+            comp.leftHand.hit(user.rightHand);
+        if(max_pos==3)
+            comp.leftHand.hit(user.leftHand);
+        }
 
         turn=Turn.USER;
     }
@@ -245,101 +339,101 @@ function vectorToString(vector, digits) {
              + vector[2].toFixed(digits) + ")";
 }
 
-    //////////////////////////////////////////////////DRAWING SECTION//////////////////////////////////////////////////////////////
-    var canvas = document.getElementById("myCanvas");
-    var ctx = canvas.getContext("2d")
+//////////////////////////////////////////////////DRAWING SECTION//////////////////////////////////////////////////////////////
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d")
 
-    function drawEnemyHands(){
-        //left palm
+function drawEnemyHands(){
+    //left palm
+    ctx.beginPath();
+    ctx.rect(120,40,80,80);
+    ctx.fillStyle = "red";
+    ctx.fill();
+    ctx.closePath();
+
+    //right palm
+    ctx.beginPath();
+    ctx.rect(280,40,80,80);
+    ctx.fillStyle = "red";
+    ctx.fill();
+    ctx.closePath();
+
+    //left fingers
+    var initX = 195;
+    for(var i=0; i<comp.leftHand.fingerCount; i++){
+        var initY = (i<4) ? 120 : 80;
+        initX = (i<4) ? initX : 215;
         ctx.beginPath();
-        ctx.rect(120,40,80,80);
+        ctx.rect(initX,initY,-15,50);
         ctx.fillStyle = "red";
         ctx.fill();
         ctx.closePath();
-
-        //right palm
-        ctx.beginPath();
-        ctx.rect(280,40,80,80);
-        ctx.fillStyle = "red";
-        ctx.fill();
-        ctx.closePath();
-
-        //left fingers
-        var initX = 195;
-        for(var i=0; i<comp.leftHand.fingerCount; i++){
-            var initY = (i<4) ? 120 : 80;
-            initX = (i<4) ? initX : 215;
-            ctx.beginPath();
-            ctx.rect(initX,initY,-15,50);
-            ctx.fillStyle = "red";
-            ctx.fill();
-            ctx.closePath();
-            initX-=20;
-        }
-
-        //right fingers
-        var initX = 285;
-        for(var i=0; i<comp.rightHand.fingerCount; i++){
-            var initY = (i<4) ? 120 : 80;
-            initX = (i<4) ? initX : 265;
-            ctx.beginPath();
-            ctx.rect(initX,initY,15,50);
-            ctx.fillStyle = "red";
-            ctx.fill();
-            ctx.closePath();
-            initX+=20;
-        }
+        initX-=20;
     }
 
-    function drawPlayerHands(){
-        
-
-        //left palm
+    //right fingers
+    var initX = 285;
+    for(var i=0; i<comp.rightHand.fingerCount; i++){
+        var initY = (i<4) ? 120 : 80;
+        initX = (i<4) ? initX : 265;
         ctx.beginPath();
-        ctx.rect(120,360,80,80);
+        ctx.rect(initX,initY,15,50);
+        ctx.fillStyle = "red";
+        ctx.fill();
+        ctx.closePath();
+        initX+=20;
+    }
+}
+
+function drawPlayerHands(){
+    
+
+    //left palm
+    ctx.beginPath();
+    ctx.rect(120,360,80,80);
+    ctx.fillStyle = user.leftHand.currColor;
+    ctx.fill();
+    ctx.closePath();
+
+    //right palm
+    ctx.beginPath();
+    ctx.rect(280,360,80,80);
+    ctx.fillStyle = user.rightHand.currColor;
+    ctx.fill();
+    ctx.closePath();
+
+    //left fingers
+    var initX = 195;
+    for(var i=0; i<user.leftHand.fingerTypes.length; i++){
+        var fing = user.leftHand.fingerTypes[i];
+        var initY = (fing>0) ? 360 : 400;
+        initX = (fing>0) ? 215-(20*fing) : 215;
+        ctx.beginPath();
+        ctx.rect(initX,initY,-15,-50);
         ctx.fillStyle = user.leftHand.currColor;
         ctx.fill();
         ctx.closePath();
+    }
 
-        //right palm
+    //right fingers
+    var initX = 285;
+    for(var i=0; i<user.rightHand.fingerTypes.length; i++){
+        var fing = user.rightHand.fingerTypes[i];
+        var initY = (fing>0) ? 360 : 400;
+        initX = (fing>0) ? 265+(20*fing) : 265;
         ctx.beginPath();
-        ctx.rect(280,360,80,80);
+        ctx.rect(initX,initY,15,-50);
         ctx.fillStyle = user.rightHand.currColor;
         ctx.fill();
         ctx.closePath();
-
-        //left fingers
-        var initX = 195;
-        for(var i=0; i<user.leftHand.fingerTypes.length; i++){
-            var fing = user.leftHand.fingerTypes[i];
-            var initY = (fing>0) ? 360 : 400;
-            initX = (fing>0) ? 215-(20*fing) : 215;
-            ctx.beginPath();
-            ctx.rect(initX,initY,-15,-50);
-            ctx.fillStyle = user.leftHand.currColor;
-            ctx.fill();
-            ctx.closePath();
-        }
-
-        //right fingers
-        var initX = 285;
-        for(var i=0; i<user.rightHand.fingerTypes.length; i++){
-            var fing = user.rightHand.fingerTypes[i];
-            var initY = (fing>0) ? 360 : 400;
-            initX = (fing>0) ? 265+(20*fing) : 265;
-            ctx.beginPath();
-            ctx.rect(initX,initY,15,-50);
-            ctx.fillStyle = user.rightHand.currColor;
-            ctx.fill();
-            ctx.closePath();
-        }
     }
+}
 
-    function draw(){
-        if(gameStatus = GameStatus.RUNNING){
-            ctx.clearRect(0,0,canvas.width, canvas.height);
-            drawEnemyHands();
-            drawPlayerHands();
-        }
-    }
-    setInterval(draw, 10);
+function draw(){
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    drawEnemyHands();
+    drawPlayerHands();
+}
+setInterval(draw, 10);
+
+
